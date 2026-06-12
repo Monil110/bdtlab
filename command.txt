@@ -1,0 +1,5 @@
+vi part-r-00000.txt
+
+hdfs dfs -put part-r-00000.txt /output
+
+hdfs dfs -cat part-r-00000.txt
