@@ -1,0 +1,60 @@
+ratings = LOAD 'dataset3.csv' USING PigStorage(',')
+AS (
+    movieId:int,
+    title:chararray,
+    userId:int,
+    rating:float,
+    genreId:int
+);
+
+grouped_ratings = GROUP ratings BY movieId;
+
+movie_rating_count = FOREACH grouped_ratings GENERATE
+    group AS movieId,
+    COUNT(ratings) AS numRatings;
+
+DUMP movie_rating_count;
+
+grouped_by_movie = GROUP ratings BY movieId;
+
+user_rating_count_by_movie = FOREACH grouped_by_movie {
+    users = ratings.userId;
+    GENERATE
+        group AS movieId,
+        users,
+        COUNT(users) AS numRatings;
+};
+
+DUMP user_rating_count_by_movie;
+
+valid_ratings = FILTER ratings BY userId IS NOT NULL;
+
+distinct_users = DISTINCT valid_ratings;
+
+distinct_userid = FOREACH distinct_users GENERATE
+    userId;
+
+DUMP distinct_userid;
+
+high_rating = FILTER ratings BY rating > 3;
+
+grouped_by_movie_high = GROUP high_rating BY movieId;
+
+movie_count = FOREACH grouped_by_movie_high GENERATE
+    group AS movieId;
+
+distinct_movie_count = GROUP movie_count ALL;
+
+final_count = FOREACH distinct_movie_count GENERATE
+    COUNT(movie_count) AS numHighRatingMovies;
+
+DUMP final_count;
+
+grouped_data = GROUP ratings ALL;
+
+ratings_stats = FOREACH grouped_data GENERATE
+    MAX(ratings.rating) AS maxRating,
+    MIN(ratings.rating) AS minRating,
+    AVG(ratings.rating) AS avgRating;
+
+DUMP ratings_stats;
